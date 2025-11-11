@@ -13,7 +13,7 @@
 </head>
 <body>
   <h1>Trading Anfrage senden 📨🎮</h1>
-  <p class="hint">Gib deinen Roblox-Namen, was du bekommen willst und was du gibst.</p>
+  <p class="hint">Gib deinen Roblox-Namen, was du bekommen willst und was du gibst. Du erhältst eine ID, mit der du später chatten kannst, sobald deine Anfrage akzeptiert wurde!</p>
 
   <label>Roblox Name
     <input id="robloxName" placeholder="z.B. CoolPlayer123" />
@@ -63,11 +63,11 @@
       const wants=document.getElementById('wants').value.trim();
       const gives=document.getElementById('gives').value.trim();
       const message=document.getElementById('message').value.trim();
-      if(!robloxName||!wants||!gives){alert('Bitte alles ausfüllen.');return;}
+      if(!robloxName||!wants||!gives){alert('Bitte alle Felder ausfüllen!');return;}
       const id=genId();
       const data={id,createdAt:Date.now(),robloxName,wants,gives,message,status:'pending'};
       await db.ref('requests/'+id).set(data);
-      result.textContent='✅ Anfrage gesendet!\nDeine ID: '+id+'\nBitte notieren!';
+      result.textContent='✅ Anfrage gesendet!\nDeine Anfrage-ID: '+id+'\nKomm später mit dieser ID zurück, wenn sie akzeptiert wurde, um zu chatten.';
     };
   </script>
 </body>
