@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trading Anfrage senden</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto;max-width:820px;margin:32px auto;padding:16px}
+    label{display:block;margin-top:12px}
+    input,textarea,button{width:100%;padding:8px;margin-top:6px}
+    .hint{font-size:0.9rem;color:#666}
+  </style>
+</head>
+<body>
+  <h1>Trading Anfrage senden 📨🎮</h1>
+  <p class="hint">Gib deinen Roblox-Namen, was du bekommen willst und was du gibst.</p>
+
+  <label>Roblox Name
+    <input id="robloxName" placeholder="z.B. CoolPlayer123" />
+  </label>
+
+  <label>Was du möchtest
+    <input id="wants" placeholder="z.B. Rare Hat" />
+  </label>
+
+  <label>Was du gibst
+    <input id="gives" placeholder="z.B. 500 Robux" />
+  </label>
+
+  <label>Nachricht
+    <textarea id="message" rows="3" placeholder="Kurz etwas dazu..."></textarea>
+  </label>
+
+  <button id="sendBtn">Anfrage senden ✉️</button>
+  <pre id="result"></pre>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJO1E-U1VCQRXlMjHUrP5312ozqH2gL6w",
+      authDomain: "traden-996a7.firebaseapp.com",
+      databaseURL: "https://traden-996a7-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "traden-996a7",
+      storageBucket: "traden-996a7.firebasestorage.app",
+      messagingSenderId: "891291590181",
+      appId: "1:891291590181:web:b3738e6144a685728d69cc",
+      measurementId: "G-2BT2JP06XH"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const sendBtn = document.getElementById('sendBtn');
+    const result = document.getElementById('result');
+
+    function genId(){
+      const a = crypto.getRandomValues(new Uint32Array(2));
+      return (a[0].toString(36)+a[1].toString(36)).slice(0,8);
+    }
+
+    sendBtn.onclick = async ()=>{
+      const robloxName=document.getElementById('robloxName').value.trim();
+      const wants=document.getElementById('wants').value.trim();
+      const gives=document.getElementById('gives').value.trim();
+      const message=document.getElementById('message').value.trim();
+      if(!robloxName||!wants||!gives){alert('Bitte alles ausfüllen.');return;}
+      const id=genId();
+      const data={id,createdAt:Date.now(),robloxName,wants,gives,message,status:'pending'};
+      await db.ref('requests/'+id).set(data);
+      result.textContent='✅ Anfrage gesendet!\nDeine ID: '+id+'\nBitte notieren!';
+    };
+  </script>
+</body>
+</html>
