@@ -8,23 +8,25 @@
     body{font-family:system-ui,Segoe UI,Roboto;max-width:820px;margin:32px auto;padding:16px}
     label{display:block;margin-top:12px}
     input,textarea,button{width:100%;padding:8px;margin-top:6px}
+    #result{background:#f6f6f6;padding:10px;border-radius:8px;margin-top:10px;white-space:pre-line}
     .hint{font-size:0.9rem;color:#666}
+    #copyBtn{margin-top:8px}
   </style>
 </head>
 <body>
   <h1>Trading Anfrage senden 📨🎮</h1>
-  <p class="hint">Gib deinen Roblox-Namen, was du bekommen willst und was du gibst. Du erhältst eine ID, mit der du später chatten kannst, sobald deine Anfrage akzeptiert wurde!</p>
+  <p class="hint">Gib deinen Roblox-Namen, was du bekommen willst und was du gibst. Nach dem Absenden bekommst du deine persönliche ID, mit der du später chatten kannst!</p>
 
   <label>Roblox Name
     <input id="robloxName" placeholder="z.B. CoolPlayer123" />
   </label>
 
   <label>Was du möchtest
-    <input id="wants" placeholder="z.B. La Grande Combinasione" />
+    <input id="wants" placeholder="z.B. Rare Hat" />
   </label>
 
   <label>Was du gibst
-    <input id="gives" placeholder="z.B. Garama and Madundung" />
+    <input id="gives" placeholder="z.B. 500 Robux" />
   </label>
 
   <label>Nachricht
@@ -32,7 +34,7 @@
   </label>
 
   <button id="sendBtn">Anfrage senden ✉️</button>
-  <pre id="result"></pre>
+  <div id="result"></div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -51,7 +53,8 @@
     const db = firebase.database();
 
     const sendBtn = document.getElementById('sendBtn');
-    const result = document.getElementById('result');
+    const resultDiv = document.getElementById('result');
+    let lastSent = 0; // Anti-Spam
 
     function genId(){
       const a = crypto.getRandomValues(new Uint32Array(2));
@@ -59,15 +62,41 @@
     }
 
     sendBtn.onclick = async ()=>{
+      const now = Date.now();
+      if (now - lastSent < 30000) { // 30 Sekunden
+        alert("⏳ Bitte warte ein bisschen, bevor du eine neue Anfrage sendest!");
+        return;
+      }
+
       const robloxName=document.getElementById('robloxName').value.trim();
       const wants=document.getElementById('wants').value.trim();
       const gives=document.getElementById('gives').value.trim();
       const message=document.getElementById('message').value.trim();
-      if(!robloxName||!wants||!gives){alert('Bitte alle Felder ausfüllen!');return;}
+      if(!robloxName||!wants||!gives){
+        alert('Bitte alle Felder ausfüllen!');
+        return;
+      }
+
       const id=genId();
       const data={id,createdAt:Date.now(),robloxName,wants,gives,message,status:'pending'};
       await db.ref('requests/'+id).set(data);
-      result.textContent='✅ Anfrage gesendet!\nDeine Anfrage-ID: '+id+'\nKomm später mit dieser ID zurück, wenn sie akzeptiert wurde, um zu chatten.';
+      lastSent = now;
+
+      const redeemLink = window.location.origin + "/redeem.html";
+      resultDiv.innerHTML = `
+        ✅ <b>Anfrage gesendet!</b><br>
+        <b>Deine Anfrage-ID:</b> <span id="idText">${id}</span><br>
+        <button id="copyBtn">📋 ID kopieren</button><br><br>
+        🔗 <b>Chat-Seite:</b> <a href="${redeemLink}" target="_blank">${redeemLink}</a><br><br>
+        💡 Speichere deine ID gut ab! Du brauchst sie, wenn deine Anfrage akzeptiert wurde.
+      `;
+
+      document.getElementById("copyBtn").onclick = () => {
+        const text = document.getElementById("idText").innerText;
+        navigator.clipboard.writeText(text);
+        document.getElementById("copyBtn").textContent = "✅ Kopiert!";
+        setTimeout(() => document.getElementById("copyBtn").textContent = "📋 ID kopieren", 2000);
+      };
     };
   </script>
 </body>
