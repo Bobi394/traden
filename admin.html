@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin – Trading Anfragen</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto;max-width:1000px;margin:24px auto;padding:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #ddd}
+    button{padding:6px 10px;margin-right:6px}
+  </style>
+</head>
+<body>
+  <h1>Admin Bereich 🔧</h1>
+  <button id="refresh">↻ Aktualisieren</button>
+  <table>
+    <thead><tr><th>ID</th><th>Roblox</th><th>Wants</th><th>Gives</th><th>Status</th><th>Aktionen</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJO1E-U1VCQRXlMjHUrP5312ozqH2gL6w",
+      authDomain: "traden-996a7.firebaseapp.com",
+      databaseURL: "https://traden-996a7-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "traden-996a7",
+      storageBucket: "traden-996a7.firebasestorage.app",
+      messagingSenderId: "891291590181",
+      appId: "1:891291590181:web:b3738e6144a685728d69cc",
+      measurementId: "G-2BT2JP06XH"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db=firebase.database();
+
+    const tbody=document.getElementById('tbody');
+    document.getElementById('refresh').onclick=load;
+
+    async function load(){
+      const snap=await db.ref('requests').get();
+      tbody.innerHTML='';
+      if(!snap.exists())return;
+      const all=snap.val();
+      for(const id of Object.keys(all)){
+        const r=all[id];
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${id}</td>
+          <td>${r.robloxName}</td>
+          <td>${r.wants}</td>
+          <td>${r.gives}</td>
+          <td>${r.status}</td>
+          <td id="a-${id}"></td>`;
+        tbody.appendChild(tr);
+        const act=document.getElementById('a-'+id);
+        if(r.status==='pending'){
+          const acc=document.createElement('button');acc.textContent='✅';
+          acc.onclick=()=>accept(id);
+          const den=document.createElement('button');den.textContent='❌';
+          den.onclick=()=>deny(id);
+          act.appendChild(acc);act.appendChild(den);
+        }else if(r.status==='accepted'){act.textContent='Code: '+r.code;}
+      }
+    }
+
+    function makeCode(){return Math.random().toString(36).substring(2,8).toUpperCase();}
+
+    async function accept(id){
+      const code=makeCode();
+      await db.ref('requests/'+id).update({status:'accepted',code});
+      await db.ref('codes/'+code).set({requestId:id,createdAt:Date.now()});
+      await db.ref('chats/'+code).set({messages:{}});
+      alert('Anfrage '+id+' akzeptiert ✅\nCode: '+code);
+      load();
+    }
+    async function deny(id){
+      await db.ref('requests/'+id).update({status:'denied'});
+      load();
+    }
+    load();
+  </script>
+</body>
+</html>
