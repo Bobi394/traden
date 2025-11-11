@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Code einlösen & Chat</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto;max-width:900px;margin:20px auto;padding:12px}
+    #chat{border:1px solid #ddd;padding:10px;height:360px;overflow:auto;background:#fafafa}
+    .msg{margin:6px 0;padding:6px;border-radius:6px}
+    .me{background:#e0ffd8}
+    .other{background:#fff}
+  </style>
+</head>
+<body>
+  <h1>Code einlösen 💬</h1>
+  <input id="codeInput" placeholder="Code eingeben"/>
+  <input id="nameInput" placeholder="Dein Roblox Name"/>
+  <button id="join">Beitreten</button>
+  <div id="chat" style="display:none"></div>
+  <input id="msgInput" placeholder="Nachricht..." style="width:70%;display:none"/>
+  <button id="sendMsg" style="display:none">Senden</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJO1E-U1VCQRXlMjHUrP5312ozqH2gL6w",
+      authDomain: "traden-996a7.firebaseapp.com",
+      databaseURL: "https://traden-996a7-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "traden-996a7",
+      storageBucket: "traden-996a7.firebasestorage.app",
+      messagingSenderId: "891291590181",
+      appId: "1:891291590181:web:b3738e6144a685728d69cc",
+      measurementId: "G-2BT2JP06XH"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db=firebase.database();
+
+    let code=null,name=null,ref=null;
+    document.getElementById('join').onclick=async()=>{
+      code=document.getElementById('codeInput').value.trim().toUpperCase();
+      name=document.getElementById('nameInput').value.trim();
+      if(!code||!name)return alert('Bitte Code und Namen eingeben.');
+      const c=await db.ref('codes/'+code).get();
+      if(!c.exists())return alert('Ungültiger Code!');
+      ref=db.ref('chats/'+code+'/messages');
+      document.getElementById('chat').style.display='';
+      document.getElementById('msgInput').style.display='';
+      document.getElementById('sendMsg').style.display='';
+      ref.on('value',s=>{
+        const chat=document.getElementById('chat');
+        chat.innerHTML='';
+        const v=s.val()||{};
+        for(const k of Object.keys(v)){
+          const m=v[k];
+          const div=document.createElement('div');
+          div.className='msg '+(m.from===name?'me':'other');
+          div.innerHTML='<b>'+m.from+':</b> '+m.text;
+          chat.appendChild(div);
+        }
+        chat.scrollTop=chat.scrollHeight;
+      });
+    };
+    document.getElementById('sendMsg').onclick=async()=>{
+      const t=document.getElementById('msgInput').value.trim();
+      if(!t||!ref)return;
+      await ref.push({from:name,text:t,ts:Date.now()});
+      document.getElementById('msgInput').value='';
+    };
+  </script>
+</body>
+</html>
