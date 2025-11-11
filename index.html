@@ -39,6 +39,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
+    // Deine Firebase Config 🔥
     const firebaseConfig = {
       apiKey: "AIzaSyAJO1E-U1VCQRXlMjHUrP5312ozqH2gL6w",
       authDomain: "traden-996a7.firebaseapp.com",
@@ -54,7 +55,7 @@
 
     const sendBtn = document.getElementById('sendBtn');
     const resultDiv = document.getElementById('result');
-    let lastSent = 0; // Anti-Spam
+    let lastSent = 0; // Anti-Spam Timer
 
     function genId(){
       const a = crypto.getRandomValues(new Uint32Array(2));
@@ -63,8 +64,8 @@
 
     sendBtn.onclick = async ()=>{
       const now = Date.now();
-      if (now - lastSent < 30000) { // 30 Sekunden
-        alert("⏳ Bitte warte ein bisschen, bevor du eine neue Anfrage sendest!");
+      if (now - lastSent < 30000) { // 30 Sekunden Cooldown
+        alert("⏳ Bitte warte etwas, bevor du eine neue Anfrage sendest!");
         return;
       }
 
@@ -82,9 +83,9 @@
       await db.ref('requests/'+id).set(data);
       lastSent = now;
 
-      const redeemLink = window.location.origin + "/redeem.html";
+      const redeemLink = "https://bobi394.github.io/traden/reedem.html"; // Dein echter Link
       resultDiv.innerHTML = `
-        ✅ <b>Anfrage gesendet!</b><br>
+        ✅ <b>Anfrage gesendet!</b><br><br>
         <b>Deine Anfrage-ID:</b> <span id="idText">${id}</span><br>
         <button id="copyBtn">📋 ID kopieren</button><br><br>
         🔗 <b>Chat-Seite:</b> <a href="${redeemLink}" target="_blank">${redeemLink}</a><br><br>
@@ -94,7 +95,7 @@
       document.getElementById("copyBtn").onclick = () => {
         const text = document.getElementById("idText").innerText;
         navigator.clipboard.writeText(text);
-        document.getElementById("copyBtn").textContent = "✅ Kopiert!";
+        document.getElementById("copyBtn").textContent = "✅ ID kopiert!";
         setTimeout(() => document.getElementById("copyBtn").textContent = "📋 ID kopieren", 2000);
       };
     };
